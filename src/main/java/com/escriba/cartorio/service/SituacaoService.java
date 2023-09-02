@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.escriba.cartorio.dto.SituacaoDTOCompleto;
 import com.escriba.cartorio.exception.RegistroIdIgualException;
+import com.escriba.cartorio.exception.RegistroNaoPodeSerRemovidoException;
 import com.escriba.cartorio.exception.RegistroNomeIgualException;
 import com.escriba.cartorio.exception.RegistroNotFoundException;
 import com.escriba.cartorio.mapper.SituacaoMapper;
@@ -36,10 +37,46 @@ public class SituacaoService {
 		situacaoRepository.findById(s.getId()).ifPresent(situacaoId -> {
 			throw new RegistroIdIgualException();	
 		});
+		
 		situacaoRepository.findByNome(s.getNome()).ifPresent(situacaoNome -> {
-			throw new RegistroNomeIgualException(s.getId());	
+				throw new RegistroNomeIgualException(situacaoNome.getId());	
 		});
+		
 		situacaoRepository.save(s);
 		return "Registro cadastrado com sucesso!";
 	}
+	
+	public String editarSituacao(String id, SituacaoDTOCompleto situacao){
+		Situacao s = SituacaoMapper.INSTANCE.situacaoDTOToSituacao(situacao);
+		if(id == null) {
+			throw new IllegalArgumentException();
+		}
+		situacaoRepository.findByNome(s.getNome()).ifPresent(situacaoNome -> {
+			if(id != null && !id.equals(situacaoNome.getId())) {
+				throw new RegistroNomeIgualException(situacaoNome.getId());	
+			}
+		});
+
+		Situacao situacaoBusca = situacaoRepository.findById(id).orElseThrow(() -> new RegistroNotFoundException((id)));
+		situacaoBusca.setNome(s.getNome());
+		
+		situacaoRepository.save(situacaoBusca);
+		return "Registro editado com sucesso!";
+	}
+	
+	public String removerSituacao(String id){
+		if(id == null) {
+			throw new IllegalArgumentException();
+		}
+
+		Situacao situacaoBusca = situacaoRepository.findById(id).orElseThrow(() -> new RegistroNotFoundException((id)));
+		
+		if(!situacaoRepository.findCartoriosBySituacaoId(id).isEmpty()) {
+			throw new RegistroNaoPodeSerRemovidoException();
+		}
+		situacaoRepository.delete(situacaoBusca);
+		
+		return "Registro removido com sucesso!";
+	}
+		
 }

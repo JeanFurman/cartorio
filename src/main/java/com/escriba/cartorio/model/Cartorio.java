@@ -40,7 +40,7 @@ public class Cartorio {
     @ManyToOne
     private Situacao situacao;
 
-    @NotEmpty
+    @NotEmpty(message = "A Lista de atribuições não pode ser vazia!")
     @ManyToMany
     @JoinTable(name = "cartorio_atribuicao",
                joinColumns = @JoinColumn(name = "cartorio_id"),

@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.escriba.cartorio.exception.RegistroIdIgualException;
+import com.escriba.cartorio.exception.RegistroNaoPodeSerRemovidoException;
 import com.escriba.cartorio.exception.RegistroNomeIgualException;
 import com.escriba.cartorio.exception.RegistroNotFoundException;
 
@@ -35,5 +36,12 @@ public class ApplicationControllerAdvice {
 	public String handleRegistroNomeIgualException(RegistroNomeIgualException e) {
 		return e.getMessage();
 	}
+	
+	@ExceptionHandler(RegistroNaoPodeSerRemovidoException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public String handleRegistroNomeIgualException(RegistroNaoPodeSerRemovidoException e) {
+		return e.getMessage();
+	}
+	
 
 }

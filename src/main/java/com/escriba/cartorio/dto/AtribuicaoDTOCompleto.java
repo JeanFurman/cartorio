@@ -8,7 +8,6 @@ import lombok.Data;
 @Data
 public class AtribuicaoDTOCompleto {
 	
-	@NotBlank
 	@Size(max=20)
 	private String id;
 	

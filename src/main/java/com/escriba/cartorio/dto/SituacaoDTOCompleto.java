@@ -9,7 +9,6 @@ import lombok.Data;
 public class SituacaoDTOCompleto {
 
     @Size(max = 20)
-    @NotBlank
     private String id;
 
     @NotBlank

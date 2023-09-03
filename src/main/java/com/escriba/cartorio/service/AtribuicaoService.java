@@ -13,15 +13,19 @@ import com.escriba.cartorio.exception.RegistroNotFoundException;
 import com.escriba.cartorio.mapper.AtribuicaoMapper;
 import com.escriba.cartorio.model.Atribuicao;
 import com.escriba.cartorio.repository.AtribuicaoRepository;
+import com.escriba.cartorio.repository.CartorioRepository;
 import com.escriba.cartorio.util.PaginasUtil;
 
 @Service
 public class AtribuicaoService {
 
     private final AtribuicaoRepository atribuicaoRepository;
+    
+    private final CartorioRepository cartorioRepository;
 	
-	public AtribuicaoService(AtribuicaoRepository atribuicaoRepository) {
+	public AtribuicaoService(AtribuicaoRepository atribuicaoRepository, CartorioRepository cartorioRepository) {
 		this.atribuicaoRepository = atribuicaoRepository;
+		this.cartorioRepository = cartorioRepository;
 	}
 	
 	public Page<AtribuicaoDTOSimplificado> listarTodasAsAtribuicoes(Pageable pageable){
@@ -75,7 +79,7 @@ public class AtribuicaoService {
 
 		Atribuicao atribuicaoBusca = atribuicaoRepository.findById(id).orElseThrow(() -> new RegistroNotFoundException((id)));
 		
-		if(!atribuicaoRepository.findCartoriosByAtribuicaoId(id).isEmpty()) {
+		if(!cartorioRepository.findCartoriosByAtribuicaoId(id).isEmpty()) {
 			throw new RegistroNaoPodeSerRemovidoException();
 		}
 		atribuicaoRepository.delete(atribuicaoBusca);

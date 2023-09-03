@@ -11,6 +11,7 @@ import com.escriba.cartorio.exception.RegistroNomeIgualException;
 import com.escriba.cartorio.exception.RegistroNotFoundException;
 import com.escriba.cartorio.mapper.SituacaoMapper;
 import com.escriba.cartorio.model.Situacao;
+import com.escriba.cartorio.repository.CartorioRepository;
 import com.escriba.cartorio.repository.SituacaoRepository;
 import com.escriba.cartorio.util.PaginasUtil;
 
@@ -19,8 +20,11 @@ public class SituacaoService {
 
 	private final SituacaoRepository situacaoRepository;
 	
-	public SituacaoService(SituacaoRepository situacaoRepository) {
+	private final CartorioRepository cartorioRepository;
+	
+	public SituacaoService(SituacaoRepository situacaoRepository, CartorioRepository cartorioRepository) {
 		this.situacaoRepository = situacaoRepository;
+		this.cartorioRepository = cartorioRepository;
 	}
 	
 	public Page<SituacaoDTOCompleto> listarTodasAsSituacoes(Pageable pageable){
@@ -71,7 +75,7 @@ public class SituacaoService {
 
 		Situacao situacaoBusca = situacaoRepository.findById(id).orElseThrow(() -> new RegistroNotFoundException((id)));
 		
-		if(!situacaoRepository.findCartoriosBySituacaoId(id).isEmpty()) {
+		if(!cartorioRepository.findCartoriosBySituacaoId(id).isEmpty()) {
 			throw new RegistroNaoPodeSerRemovidoException();
 		}
 		situacaoRepository.delete(situacaoBusca);

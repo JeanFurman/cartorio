@@ -13,8 +13,5 @@ import com.escriba.cartorio.model.Situacao;
 public interface SituacaoRepository extends JpaRepository<Situacao, String> {
 	
 	Optional<Situacao> findByNome(String name);
-
-	@Query("SELECT c FROM Cartorio c WHERE c.situacao.id = :situacaoId")
-    List<Cartorio> findCartoriosBySituacaoId(@Param("situacaoId") String situacaoId);
-
+	
 }

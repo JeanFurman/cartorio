@@ -14,8 +14,4 @@ public interface AtribuicaoRepository extends JpaRepository<Atribuicao, String> 
 	
 	Optional<Atribuicao> findByNome(String name);
 	
-	@Query("SELECT c FROM Cartorio c JOIN c.atribuicoes a WHERE a.id = :atribuicaoId")
-    List<Cartorio> findCartoriosByAtribuicaoId(@Param("atribuicaoId") String atribuicaoId);
-
-	
 }

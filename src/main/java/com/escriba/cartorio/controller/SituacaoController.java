@@ -32,7 +32,7 @@ public class SituacaoController {
 	}
 	
 	@GetMapping
-	public Page<SituacaoDTOCompleto> listarTodasAsAtribuicoes(Pageable pageable){
+	public Page<SituacaoDTOCompleto> listarTodasAsSituacoes(Pageable pageable){
 		return situacaoService.listarTodasAsSituacoes(pageable);
 	}
 

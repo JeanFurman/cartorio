@@ -56,7 +56,7 @@ public class CartorioController {
     }
 	
 	@DeleteMapping("/{id}")
-    public String editarCartorio(@PathVariable @NotNull @Positive Long id) {
+    public String removerCartorio(@PathVariable @NotNull @Positive Long id) {
         return cartorioService.removerCartorio(id);
     }
 	

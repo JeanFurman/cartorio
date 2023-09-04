@@ -187,7 +187,7 @@ public class CartorioServiceTest {
        	RegistroNotFoundException excecao = assertThrows(RegistroNotFoundException.class, () -> cartorioService.editarCartorio(
        			1L, CartorioMapper.INSTANCE.cartorioToCartorioDTOCompleto(InstanceCreatorUtil.criarCartorio())));
        	
-       	Assertions.assertThat(excecao.getMessage()).isEqualTo("Registro null não encontrado!");
+       	Assertions.assertThat(excecao.getMessage()).isEqualTo("Registro 1 não encontrado!");
    	}
 	
     @Test
@@ -215,7 +215,7 @@ public class CartorioServiceTest {
 		
     	RegistroNotFoundException excecao = assertThrows(RegistroNotFoundException.class, () -> cartorioService.removerCartorio(1L));
     	
-    	Assertions.assertThat(excecao.getMessage()).isEqualTo("Registro null não encontrado!");
+    	Assertions.assertThat(excecao.getMessage()).isEqualTo("Registro 1 não encontrado!");
 	}
 
 }

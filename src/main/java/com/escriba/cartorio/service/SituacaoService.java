@@ -43,7 +43,7 @@ public class SituacaoService {
 		});
 		
 		situacaoRepository.findByNome(s.getNome()).ifPresent(situacaoNome -> {
-				throw new RegistroNomeIgualException(situacaoNome.getId());	
+			throw new RegistroNomeIgualException(situacaoNome.getId());	
 		});
 		
 		situacaoRepository.save(s);

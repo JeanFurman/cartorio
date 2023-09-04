@@ -1,5 +1,7 @@
 package com.escriba.cartorio.service;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +20,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.escriba.cartorio.dto.CartorioDTOCompleto;
 import com.escriba.cartorio.dto.CartorioDTOSimplificado;
+import com.escriba.cartorio.exception.RegistroIdIgualException;
+import com.escriba.cartorio.exception.RegistroNomeIgualException;
+import com.escriba.cartorio.exception.RegistroNotFoundException;
 import com.escriba.cartorio.mapper.CartorioMapper;
 import com.escriba.cartorio.model.Cartorio;
 import com.escriba.cartorio.repository.AtribuicaoRepository;
@@ -55,7 +60,7 @@ public class CartorioServiceTest {
 	}
     
     @Test
-	void testListarAtribuicaoPorId_Success(){
+	void testListarCartorioPorId_Success(){
     	
     	BDDMockito.when(cartorioRepositoryMock.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(InstanceCreatorUtil.criarCartorio()));
 		
@@ -65,9 +70,19 @@ public class CartorioServiceTest {
 		Assertions.assertThat(cartorioDTOCompleto.getNome()).isEqualTo("Nome do Cartorio");
 		Assertions.assertThat(cartorioDTOCompleto.getSituacao().getNome()).isEqualTo("Nome da Situacao");
 	}
+    
+    @Test
+	void testListarCartorioPorId_RaisesRegistroNotFoundException(){
+    	
+    	BDDMockito.when(cartorioRepositoryMock.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+		
+    	RegistroNotFoundException excecao = assertThrows(RegistroNotFoundException.class, () -> cartorioService.listarCartorioPorId(1L));
+    	
+    	Assertions.assertThat(excecao.getMessage()).isEqualTo("Registro 1 não encontrado!");
+	}
 
     @Test
-	void testCadastrarSituacao_Success(){
+	void testCadastrarCartorio_Success(){
     	
     	BDDMockito.when(cartorioRepositoryMock.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
     	
@@ -80,7 +95,51 @@ public class CartorioServiceTest {
 	}
     
     @Test
-	void testEditarSituacao_Success(){
+	void testCadastrarCartorio_RaisesRegistroIdIgualException(){
+    	
+    	Cartorio c = InstanceCreatorUtil.criarCartorio();
+    	c.setId(1L);
+    	
+    	BDDMockito.when(cartorioRepositoryMock.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(InstanceCreatorUtil.criarCartorio()));
+    	
+    	BDDMockito.when(cartorioRepositoryMock.findByNome(ArgumentMatchers.anyString())).thenReturn(Optional.empty());
+		
+    	RegistroIdIgualException excecao = assertThrows(RegistroIdIgualException.class, () -> cartorioService.cadastrarCartorio(
+    			CartorioMapper.INSTANCE.cartorioToCartorioDTOCompleto(c)));
+    	
+    	Assertions.assertThat(excecao.getMessage()).isEqualTo("Registro já cadastrado");
+	}
+    
+    @Test
+	void testCadastrarCartorio_RaisesIllegalArgumentException(){
+    	
+    	Cartorio c = InstanceCreatorUtil.criarCartorio();
+    	c.setId(1L);
+    	
+    	BDDMockito.when(cartorioRepositoryMock.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+    	
+    	BDDMockito.when(cartorioRepositoryMock.findByNome(ArgumentMatchers.anyString())).thenReturn(Optional.empty());
+		
+    	assertThrows(IllegalArgumentException.class, () -> cartorioService.cadastrarCartorio(
+    			CartorioMapper.INSTANCE.cartorioToCartorioDTOCompleto(c)));
+    	
+	}
+    
+    @Test
+	void testCadastrarCartorio_RaisesRegistroNomeIgualException(){
+    	
+    	BDDMockito.when(cartorioRepositoryMock.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+    	
+    	BDDMockito.when(cartorioRepositoryMock.findByNome(ArgumentMatchers.anyString())).thenReturn(Optional.of(InstanceCreatorUtil.criarCartorio()));
+		
+    	RegistroNomeIgualException excecao = assertThrows(RegistroNomeIgualException.class, () -> cartorioService.cadastrarCartorio(
+    			CartorioMapper.INSTANCE.cartorioToCartorioDTOCompleto(InstanceCreatorUtil.criarCartorio())));
+    	
+    	Assertions.assertThat(excecao.getMessage()).isEqualTo("Nome já informado no registro com código null");
+	}
+    
+    @Test
+	void testEditarCartorio_Success(){
     	
     	BDDMockito.when(cartorioRepositoryMock.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(InstanceCreatorUtil.criarCartorio()));
     	
@@ -91,9 +150,48 @@ public class CartorioServiceTest {
 		Assertions.assertThat(editarResponse).isNotNull();
 		Assertions.assertThat(editarResponse).isEqualTo("Registro editado com sucesso!");
 	}
+    
+    @Test
+   	void testEditarCartorio_RaisesIllegalArgumentException(){
+       	
+       	BDDMockito.when(cartorioRepositoryMock.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(InstanceCreatorUtil.criarCartorio()));
+       	
+       	BDDMockito.when(cartorioRepositoryMock.findByNome(ArgumentMatchers.anyString())).thenReturn(Optional.empty());
+   				
+       	assertThrows(IllegalArgumentException.class, () -> cartorioService.editarCartorio(
+       			null, CartorioMapper.INSTANCE.cartorioToCartorioDTOCompleto(InstanceCreatorUtil.criarCartorio())));
+   	}
+   	
+       
+    @Test
+   	void testEditarCartorio_RaisesRegistroNomeIgualException(){
+       	
+       	BDDMockito.when(cartorioRepositoryMock.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(InstanceCreatorUtil.criarCartorio()));
+       	
+       	BDDMockito.when(cartorioRepositoryMock.findByNome(ArgumentMatchers.anyString())).thenReturn(Optional.of(InstanceCreatorUtil.criarCartorio()));
+   				
+       	RegistroNomeIgualException excecao = assertThrows(RegistroNomeIgualException.class, () -> cartorioService.editarCartorio(
+       			1L, CartorioMapper.INSTANCE.cartorioToCartorioDTOCompleto(InstanceCreatorUtil.criarCartorio())));
+       	
+       	Assertions.assertThat(excecao.getMessage()).isEqualTo("Nome já informado no registro com código null");
+   	}
+   	
+       
+    @Test
+   	void testEditarCartorio_RaisesRegistroNotFoundException(){
+       	
+       	BDDMockito.when(cartorioRepositoryMock.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+       	
+       	BDDMockito.when(cartorioRepositoryMock.findByNome(ArgumentMatchers.anyString())).thenReturn(Optional.empty());
+   		
+       	RegistroNotFoundException excecao = assertThrows(RegistroNotFoundException.class, () -> cartorioService.editarCartorio(
+       			1L, CartorioMapper.INSTANCE.cartorioToCartorioDTOCompleto(InstanceCreatorUtil.criarCartorio())));
+       	
+       	Assertions.assertThat(excecao.getMessage()).isEqualTo("Registro null não encontrado!");
+   	}
 	
     @Test
-	void testRemoverSituacao_Success(){
+	void testRemoverCartorio_Success(){
     	
     	BDDMockito.when(cartorioRepositoryMock.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(InstanceCreatorUtil.criarCartorio()));
 		
@@ -101,6 +199,23 @@ public class CartorioServiceTest {
 		
 		Assertions.assertThat(editarResponse).isNotNull();
 		Assertions.assertThat(editarResponse).isEqualTo("Registro removido com sucesso!");
+	}
+    
+    @Test
+	void testRemoverAtribuicao_RaisesIllegalArgumentException(){
+    	    					
+    	assertThrows(IllegalArgumentException.class, () -> cartorioService.removerCartorio(null));
+    	    	
+	}
+    
+    @Test
+	void testRemoverAtribuicao_RaisesRegistroNotFoundException(){
+    	
+    	BDDMockito.when(cartorioRepositoryMock.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+		
+    	RegistroNotFoundException excecao = assertThrows(RegistroNotFoundException.class, () -> cartorioService.removerCartorio(1L));
+    	
+    	Assertions.assertThat(excecao.getMessage()).isEqualTo("Registro null não encontrado!");
 	}
 
 }

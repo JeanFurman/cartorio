@@ -1,5 +1,8 @@
 package com.escriba.cartorio.service;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +21,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.escriba.cartorio.dto.SituacaoDTOCompleto;
+import com.escriba.cartorio.exception.RegistroIdIgualException;
+import com.escriba.cartorio.exception.RegistroNaoPodeSerRemovidoException;
+import com.escriba.cartorio.exception.RegistroNomeIgualException;
+import com.escriba.cartorio.exception.RegistroNotFoundException;
 import com.escriba.cartorio.mapper.SituacaoMapper;
 import com.escriba.cartorio.model.Cartorio;
 import com.escriba.cartorio.model.Situacao;
@@ -61,6 +68,16 @@ public class SituacaoServiceTest {
 		Assertions.assertThat(situacaoDTOCompleto).isNotNull();
 		Assertions.assertThat(situacaoDTOCompleto.getNome()).isEqualTo("Nome da Situacao");
 	}
+    
+    @Test
+	void testListarSituacaoPorId_RaisesRegistroNotFoundException(){
+    	
+    	BDDMockito.when(situacaoRepositoryMock.findById(ArgumentMatchers.anyString())).thenReturn(Optional.empty());
+		
+    	RegistroNotFoundException excecao = assertThrows(RegistroNotFoundException.class, () -> situacaoService.listarSituacaoPorId("SituacaoInexistente"));
+    	
+    	Assertions.assertThat(excecao.getMessage()).isEqualTo("Registro SituacaoInexistente não encontrado!");
+	}
 
     @Test
 	void testCadastrarSituacao_Success(){
@@ -76,6 +93,32 @@ public class SituacaoServiceTest {
 	}
     
     @Test
+	void testCadastrarSituacao_RaisesRegistroIdIgualException(){
+    	
+    	BDDMockito.when(situacaoRepositoryMock.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(InstanceCreatorUtil.criarSituacao()));
+    	
+    	BDDMockito.when(situacaoRepositoryMock.findByNome(ArgumentMatchers.anyString())).thenReturn(Optional.empty());
+		
+    	RegistroIdIgualException excecao = assertThrows(RegistroIdIgualException.class, () -> situacaoService.cadastrarSituacao(
+    			SituacaoMapper.INSTANCE.situacaoToSituacaoDTO(InstanceCreatorUtil.criarSituacao())));
+    	
+    	Assertions.assertThat(excecao.getMessage()).isEqualTo("Registro já cadastrado");
+	}
+    
+    @Test
+	void testCadastrarSituacao_RaisesRegistroNomeIgualException(){
+    	
+    	BDDMockito.when(situacaoRepositoryMock.findById(ArgumentMatchers.anyString())).thenReturn(Optional.empty());
+    	
+    	BDDMockito.when(situacaoRepositoryMock.findByNome(ArgumentMatchers.anyString())).thenReturn(Optional.of(InstanceCreatorUtil.criarSituacao()));
+		
+    	RegistroNomeIgualException excecao = assertThrows(RegistroNomeIgualException.class, () -> situacaoService.cadastrarSituacao(
+    			SituacaoMapper.INSTANCE.situacaoToSituacaoDTO(InstanceCreatorUtil.criarSituacao())));
+    	
+    	Assertions.assertThat(excecao.getMessage()).isEqualTo("Nome já informado no registro com código id_situacao");
+	}
+    
+    @Test
 	void testEditarSituacao_Success(){
     	
     	BDDMockito.when(situacaoRepositoryMock.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(InstanceCreatorUtil.criarSituacao()));
@@ -86,6 +129,45 @@ public class SituacaoServiceTest {
 		
 		Assertions.assertThat(editarResponse).isNotNull();
 		Assertions.assertThat(editarResponse).isEqualTo("Registro editado com sucesso!");
+	}
+    
+    @Test
+	void testEditarSituacao_RaisesIllegalArgumentException(){
+    	
+    	BDDMockito.when(situacaoRepositoryMock.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(InstanceCreatorUtil.criarSituacao()));
+    	
+    	BDDMockito.when(situacaoRepositoryMock.findByNome(ArgumentMatchers.anyString())).thenReturn(Optional.empty());
+				
+    	assertThrows(IllegalArgumentException.class, () -> situacaoService.editarSituacao(
+    			null, SituacaoMapper.INSTANCE.situacaoToSituacaoDTO(InstanceCreatorUtil.criarSituacao())));
+	}
+	
+    
+    @Test
+	void testEditarSituacao_RaisesRegistroNomeIgualException(){
+    	
+    	BDDMockito.when(situacaoRepositoryMock.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(InstanceCreatorUtil.criarSituacao()));
+    	
+    	BDDMockito.when(situacaoRepositoryMock.findByNome(ArgumentMatchers.anyString())).thenReturn(Optional.of(InstanceCreatorUtil.criarSituacao()));
+				
+    	RegistroNomeIgualException excecao = assertThrows(RegistroNomeIgualException.class, () -> situacaoService.editarSituacao(
+    			ArgumentMatchers.anyString(), SituacaoMapper.INSTANCE.situacaoToSituacaoDTO(InstanceCreatorUtil.criarSituacao())));
+    	
+    	Assertions.assertThat(excecao.getMessage()).isEqualTo("Nome já informado no registro com código id_situacao");
+	}
+	
+    
+    @Test
+	void testEditarSituacao_RaisesRegistroNotFoundException(){
+    	
+    	BDDMockito.when(situacaoRepositoryMock.findById(ArgumentMatchers.anyString())).thenReturn(Optional.empty());
+    	
+    	BDDMockito.when(situacaoRepositoryMock.findByNome(ArgumentMatchers.anyString())).thenReturn(Optional.empty());
+		
+    	RegistroNotFoundException excecao = assertThrows(RegistroNotFoundException.class, () -> situacaoService.editarSituacao(
+    			"id_situacao", SituacaoMapper.INSTANCE.situacaoToSituacaoDTO(InstanceCreatorUtil.criarSituacao())));
+    	
+    	Assertions.assertThat(excecao.getMessage()).isEqualTo("Registro id_situacao não encontrado!");
 	}
 	
     @Test
@@ -102,5 +184,37 @@ public class SituacaoServiceTest {
 		Assertions.assertThat(editarResponse).isNotNull();
 		Assertions.assertThat(editarResponse).isEqualTo("Registro removido com sucesso!");
 	}
+    
+    @Test
+   	void testRemoverSituacao_RaisesIllegalArgumentException(){
+       	    					
+       	assertThrows(IllegalArgumentException.class, () -> situacaoService.removerSituacao(null));
+       	    	
+   	}
+       
+    @Test
+   	void testRemoverSituacao_RaisesRegistroNotFoundException(){
+       	
+       	BDDMockito.when(situacaoRepositoryMock.findById(ArgumentMatchers.anyString())).thenReturn(Optional.empty());
+   		
+       	RegistroNotFoundException excecao = assertThrows(RegistroNotFoundException.class, () -> situacaoService.removerSituacao("id_situacao"));
+       	
+       	Assertions.assertThat(excecao.getMessage()).isEqualTo("Registro id_situacao não encontrado!");
+   	}
+       
+    @Test
+   	void testRemoverSituacao_RaisesRegistroNaoPodeSerRemovidoException(){
+       	
+       	BDDMockito.when(situacaoRepositoryMock.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(InstanceCreatorUtil.criarSituacao()));
+       	
+       	List<Cartorio> listaVazia = new ArrayList<>();
+       	
+       	listaVazia.add(InstanceCreatorUtil.criarCartorio());
+       	
+       	BDDMockito.when(cartorioRepositoryMock.findCartoriosBySituacaoId(ArgumentMatchers.anyString())).thenReturn(listaVazia);
+   		
+       	RegistroNaoPodeSerRemovidoException excecao = assertThrows(RegistroNaoPodeSerRemovidoException.class, () -> situacaoService.removerSituacao("id_situacao"));
+       	Assertions.assertThat(excecao.getMessage()).isEqualTo("Registro utilizado em outro cadastro");
+   	}
 
 }
